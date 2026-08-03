@@ -1,5 +1,5 @@
-#include "include/core/engine.h"
-#include "include/modules/scene_module.h"
+#include "core/engine.h"
+#include "modules/scene_module.h"
 #include <iostream>
 #include <memory>
 
