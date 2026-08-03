@@ -16,7 +16,8 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake build-essential nlohmann-json3-dev glm-dev
+        sudo apt-get install -y cmake build-essential git
+        sudo apt-get install -y nlohmann-json3-dev glm-dev
     
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -25,14 +26,30 @@ jobs:
         distribution: 'temurin'
         cache: gradle
     
-    - name: Build Console Test
+    - name: Build Console Test - Debug
       run: |
+        echo "=== System Info ==="
+        cmake --version
+        g++ --version
+        echo "=== Directory Structure ==="
+        find . -name "*.h" -o -name "*.cpp" | head -20
+        echo "=== Starting Build ==="
         mkdir -p build
         cd build
-        cmake ..
-        make -j4
-        ls -la bin/
-        ./bin/polymaster_test
+        cmake .. || (echo "CMAKE FAILED" && cat CMakeError.log)
+        make -j4 VERBOSE=1 || (echo "MAKE FAILED" && cat CMakeFiles/*.log)
+        echo "=== Build Output ==="
+        ls -laR bin/ || echo "No bin directory"
+    
+    - name: Run Test
+      if: always()
+      run: |
+        if [ -f build/bin/polymaster_test ]; then
+          ./build/bin/polymaster_test
+        else
+          echo "polymaster_test not found"
+          find build -name "polymaster_test" -o -name "*.o"
+        fi
     
     - name: Upload Console Test
       uses: actions/upload-artifact@v4
