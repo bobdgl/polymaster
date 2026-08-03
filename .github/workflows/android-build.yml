@@ -3,11 +3,9 @@ name: Android Build
 on:
   push:
     branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
-  build:
+  build-desktop:
     runs-on: ubuntu-latest
     
     steps:
@@ -16,45 +14,48 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake build-essential wget unzip
-        
-        # Создаём директории ДО копирования!
-        sudo mkdir -p /usr/include/nlohmann
-        sudo mkdir -p /usr/include/glm
-        
-        # Скачиваем GLM
+        sudo apt-get install -y cmake build-essential wget
+        mkdir -p /usr/include/glm
         cd /tmp
         wget -q https://github.com/g-truc/glm/releases/download/0.9.9.8/glm-0.9.9.8.zip
         unzip -q glm-0.9.9.8.zip
         sudo cp -r glm/glm/* /usr/include/glm/
-        
-        # Скачиваем nlohmann/json
-        cd /tmp
-        wget -q https://github.com/nlohmann/json/releases/download/v3.11.2/json.hpp
-        sudo cp json.hpp /usr/include/nlohmann/
-        
-        echo "✅ Dependencies ready"
-        ls /usr/include/glm/ | head -5
-        ls /usr/include/nlohmann/
     
-    - name: Build Test
+    - name: Build for x86-64
       run: |
         mkdir -p build
         cd build
         cmake ..
         make -j4
     
-    - name: Run Test
-      if: always()
-      run: |
-        if [ -f build/bin/polymaster_test ]; then
-          ./build/bin/polymaster_test
-        fi
-    
-    - name: Upload Test Binary
+    - name: Upload x86-64 Binary
       uses: actions/upload-artifact@v4
-      if: always()
       with:
-        name: polymaster_test
+        name: polymaster_test_x86-64
         path: build/bin/polymaster_test
+        retention-days: 30
+
+  build-arm64:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install ARM64 cross-compiler
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu cmake
+    
+    - name: Build for ARM64
+      run: |
+        mkdir -p build-arm64
+        cd build-arm64
+        cmake -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++ ..
+        make -j4
+    
+    - name: Upload ARM64 Binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: polymaster_test_arm64
+        path: build-arm64/bin/polymaster_test
         retention-days: 30
