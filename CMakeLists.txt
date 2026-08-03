@@ -4,11 +4,11 @@ project(PolyMaster)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Опции для платформы
-option(BUILD_ANDROID "Build for Android NDK" OFF)
+# GLM и nlohmann/json это header-only - просто добавляем include paths
+set(GLM_INCLUDE_DIR /usr/include)
+set(JSON_INCLUDE_DIR /usr/include)
 
-find_package(glm REQUIRED)
-find_package(nlohmann_json REQUIRED)
+include_directories(${GLM_INCLUDE_DIR} ${JSON_INCLUDE_DIR})
 
 # Главное ядро
 set(POLYMASTER_SOURCES
@@ -21,31 +21,8 @@ set(POLYMASTER_SOURCES
     src/modules/renderer_module.cpp
 )
 
-# Для Desktop
 add_library(polymaster_core ${POLYMASTER_SOURCES})
 target_include_directories(polymaster_core PUBLIC include)
-target_link_libraries(polymaster_core PUBLIC 
-    glm::glm
-    nlohmann_json::nlohmann_json
-)
-
-# Для Android
-if(BUILD_ANDROID)
-    add_library(polymaster_native SHARED
-        src/android/native.cpp
-        ${POLYMASTER_SOURCES}
-    )
-    
-    target_include_directories(polymaster_native PRIVATE include)
-    target_link_libraries(polymaster_native
-        GLESv2
-        EGL
-        android
-        log
-        glm::glm
-        nlohmann_json::nlohmann_json
-    )
-endif()
 
 # Desktop test
 add_executable(polymaster_test src/main.cpp)
