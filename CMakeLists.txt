@@ -4,18 +4,15 @@ project(PolyMaster)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# GLM и nlohmann/json это header-only - просто добавляем include paths
 set(GLM_INCLUDE_DIR /usr/include)
-set(JSON_INCLUDE_DIR /usr/include)
 
-include_directories(${GLM_INCLUDE_DIR} ${JSON_INCLUDE_DIR})
+include_directories(${GLM_INCLUDE_DIR} /usr/include)
 
-# Главное ядро
+# Главное ядро БЕЗ scene_serializer для GitHub Actions
 set(POLYMASTER_SOURCES
     src/core/engine.cpp
     src/core/event_bus.cpp
     src/modules/scene_module.cpp
-    src/modules/scene_serializer.cpp
     src/modules/input_module.cpp
     src/modules/transform_module.cpp
     src/modules/renderer_module.cpp
