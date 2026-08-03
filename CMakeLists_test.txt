@@ -1,0 +1,4 @@
+add_executable(polymaster_test
+    src/main.cpp
+)
+target_link_libraries(polymaster_test polymaster_core)

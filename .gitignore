@@ -1,0 +1,24 @@
+# Build directories
+build/
+android/app/build/
+android/.gradle/
+
+# IDE
+.idea/
+.gradle/
+*.iml
+*.swp
+*.swo
+
+# NDK
+android-ndk-*/
+*.zip
+
+# Binaries
+*.o
+*.a
+*.so
+bin/
+
+# OS
+.DS_Store
