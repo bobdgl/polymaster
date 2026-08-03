@@ -17,24 +17,46 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y cmake build-essential pkg-config
-        sudo apt-get install -y nlohmann-json3-dev glm-dev
         
-        # Проверяем установку
-        cmake --version
-        pkg-config --list-all | grep -i "glm\|json" || echo "No glm/json found"
+        # Скачиваем GLM (header-only)
+        mkdir -p /tmp/glm
+        cd /tmp/glm
+        wget -q https://github.com/g-truc/glm/releases/download/0.9.9.8/glm-0.9.9.8.zip
+        unzip -q glm-0.9.9.8.zip
+        sudo cp -r glm /usr/include/
+        
+        # Скачиваем nlohmann/json
+        mkdir -p /tmp/json
+        cd /tmp/json
+        wget -q https://github.com/nlohmann/json/releases/download/v3.11.2/json.hpp
+        sudo cp json.hpp /usr/include/nlohmann/json.hpp
+        mkdir -p /usr/include/nlohmann
+        
+        echo "=== Dependencies installed ==="
+        ls /usr/include/glm/ 2>/dev/null && echo "✅ GLM found"
+        ls /usr/include/nlohmann/ 2>/dev/null && echo "✅ nlohmann found"
     
     - name: Build Test
       run: |
         mkdir -p build
         cd build
-        cmake .. 2>&1
-        make 2>&1 | head -100
+        cmake ..
+        make -j4
     
-    - name: Check Build Result
+    - name: Run Test
       if: always()
       run: |
-        echo "=== Checking build output ==="
-        ls -la build/bin/ 2>/dev/null || echo "No bin directory"
-        find build -name "polymaster_test" 2>/dev/null || echo "Test binary not found"
-        echo "=== Full build directory ==="
-        find build -type f \( -name "*.a" -o -name "polymaster_test" \) 2>/dev/null
+        if [ -f build/bin/polymaster_test ]; then
+          ./build/bin/polymaster_test
+        else
+          echo "Build failed - no binary"
+          find build -type f -name "*.o" | head -5
+        fi
+    
+    - name: Upload Test Binary
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: polymaster_test
+        path: build/bin/polymaster_test
+        retention-days: 30
